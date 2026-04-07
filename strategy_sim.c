@@ -15,16 +15,11 @@
 #define SOFT_TYRE_PENALTY 0.75
 #define INVALID_LAP 999999.0
 #define TOTAL_NUMBER_OF_TRACKS 24
-<<<<<<< HEAD
 #define PROBABILITY_CALCULATION_NUMBER 10000
 #define MAX_STOP_NUMBER 5
 #define SOFT_WINDOW_COEFFICIENT 0.1
 #define MEDIUM_WINDOW_COEFFICIENT 0.2
 #define HARD_WINDOW_COEFFICIENT 0.3
-=======
-#define PROBABILITY_CALCULATION_NUMBER 1000
-#define MAX_STOP_NUMBER 5
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
 //-------------------------
 
 typedef struct {
@@ -58,22 +53,22 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp);
 //--------------------------------------
 
 int main() {
-	srand(time(NULL));
+    srand(time(NULL));
 
-	FILE* tracksData;
-	tracksData = fopen("C:\\Users\\LENOVO\\Desktop\\F1-Race-Strategy-And-Tyre-Life-Simulator\\tracks_data.txt","r");
-	
-	if(tracksData == NULL){
-		printf("File opening is failed.\n");
-		return 1;
-	}else{
-		int i = 0;
-		while(fscanf(tracksData,"%s %f %f %f %d %f %d",allTracks[i].name,&allTracks[i].length,&allTracks[i].referenceTime,
-		&allTracks[i].pitWay,&allTracks[i].stressLevel,&allTracks[i].trackFuelCoefficient,&allTracks[i].totalLaps) == 7)
-			i++;
-		fclose(tracksData);
-	}
-	
+    FILE* tracksData;
+    tracksData = fopen("C:\\Users\\LENOVO\\Desktop\\F1-Race-Strategy-And-Tyre-Life-Simulator\\tracks_data.txt","r");
+    
+    if(tracksData == NULL){
+        printf("File opening is failed.\n");
+        return 1;
+    }else{
+        int i = 0;
+        while(fscanf(tracksData,"%s %f %f %f %d %f %d",allTracks[i].name,&allTracks[i].length,&allTracks[i].referenceTime,
+        &allTracks[i].pitWay,&allTracks[i].stressLevel,&allTracks[i].trackFuelCoefficient,&allTracks[i].totalLaps) == 7)
+            i++;
+        fclose(tracksData);
+    }
+    
     menu();
     int chooseTrack, tyre, actionType;
     float startFuel,trackTemp;
@@ -263,20 +258,14 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
     float startFuelBackUp = startFuel;
     char tyres[3] = {'S', 'M', 'H'};
     char allSimTyres[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
-<<<<<<< HEAD
     int allSimLaps[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
     int allSimPitNumbers[PROBABILITY_CALCULATION_NUMBER];
-=======
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
 
     for(int k = 0; k < PROBABILITY_CALCULATION_NUMBER; k++){
         for(int l = 0; l < MAX_STOP_NUMBER + 1; l++){
             allSimTyres[k][l] = ' ';
         }
-<<<<<<< HEAD
         allSimPitNumbers[k] = 0;
-=======
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
     }
 
     for(int j = 0; j < PROBABILITY_CALCULATION_NUMBER; j++){
@@ -292,10 +281,6 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             flag = 0; 
             if(i == 0) lapsRemaining = t.totalLaps;
 
-<<<<<<< HEAD
-=======
-            // ihtimalleri farklilastirma ustune calisilacak. rand kullanilabilir mesela +2 sayisinin yerine rand ile 1,2,3 sayilarindan biri atilabilir
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
             int tyreNumbers[3] = {1, 3, 5};
             selectedTyre = tyreNumbers[rand() % 3];
 
@@ -303,7 +288,6 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             else if(selectedTyre == 3) allSimTyres[j][i]  = tyres[1];
             else if(selectedTyre == 5) allSimTyres[j][i]  = tyres[0];
 
-<<<<<<< HEAD
             laps = calculateTyreLife(trackTemp, selectedTyre, t.length, t.stressLevel, startFuel, t); // laps = life of selected tyre
             
             if(laps > lapsRemaining) laps = lapsRemaining;
@@ -318,12 +302,6 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             
             int pitWindowWidth = (int)(laps * windowCoefficient);
 
-=======
-            laps = calculateTyreLife(trackTemp, selectedTyre, t.length, t.stressLevel, startFuel, t); // laps = secili lastigin omru
-            
-            if(laps > lapsRemaining) laps = lapsRemaining;
-
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
             float speed;
             if (selectedTyre == 5) speed = t.referenceTime * SOFT_TIME_COEFFICIENT; // Soft
             else if (selectedTyre == 3) speed = t.referenceTime * MEDIUM_TIME_COEFFICIENT; // Medium
@@ -334,11 +312,7 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             
             sumTimes += (laps * speed) + (laps) * (avgFuel * AVG_FUEL_COEFFICIENT);
 
-<<<<<<< HEAD
             lapsRemaining -= laps; 
-=======
-            lapsRemaining -= laps; // lapsRemaining = yarisin bitmesine kalan tur
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
             if(lapsRemaining <= 0){
                 flag = 2;
                 break;
@@ -356,10 +330,7 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             allProbabilitys[j] = INVALID_LAP;
         }else if(flag == 2){
             allProbabilitys[j] = sumTimes + (pitNumber) * (t.pitWay);
-<<<<<<< HEAD
             allSimPitNumbers[j] = pitNumber;
-=======
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
             char firstTyre = allSimTyres[j][0];
             int isLegal = 0;
 
@@ -389,7 +360,6 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
         }
     }
     printf("!!\n");
-<<<<<<< HEAD
 
     int totalLapsTaken = 0;
 
@@ -411,21 +381,15 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
         }
     }
     printf("\n");
-=======
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
     printf("Estimated total race time : %d min. %d sec.\n",totalSeconds / 60, totalSeconds % 60);
     printf("-------------------------------------------------------------------------------------------\n");
 }
 
 void menu() {
     printf("===========================================================================================\n");
-    printf("-------                       STRATEGY CALCULATE SIMULATOR                          -------\n");
+    printf("-------                        STRATEGY CALCULATE SIMULATOR                         -------\n");
     printf("===========================================================================================\n");
-<<<<<<< HEAD
     printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.5! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
-=======
-    printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.4! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
->>>>>>> af9bbfa5da0286faa48f2635d3c8f7fc0d396a66
     printf("===========================================================================================\n");
     printf("1-AUSTRALIA GP || 2-CHINESE GP || 3-JAPANESE GP || 4-BAHRAIN GP || 5-SAUDI ARABIAN GP ||\n");
     printf("6-MIAMI GP || 7-CANADA GP || 8-MONACOGP || 9-SPANISH GP || 10-AUSTRIAN GP ||\n");
