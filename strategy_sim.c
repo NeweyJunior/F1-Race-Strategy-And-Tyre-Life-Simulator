@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 //------- CONSTANTS -------
 #define HIGH_STRESS_COEFFICIENT 0.80
@@ -13,6 +15,11 @@
 #define SOFT_TYRE_PENALTY 0.75
 #define INVALID_LAP 999999.0
 #define TOTAL_NUMBER_OF_TRACKS 24
+#define PROBABILITY_CALCULATION_NUMBER 10000
+#define MAX_STOP_NUMBER 5
+#define SOFT_WINDOW_COEFFICIENT 0.1
+#define MEDIUM_WINDOW_COEFFICIENT 0.2
+#define HARD_WINDOW_COEFFICIENT 0.3
 //-------------------------
 
 typedef struct {
@@ -42,14 +49,14 @@ int calculateTyreLife(float trackDegree, int tyreType, float trackLength, int tr
 void calculateBestStrategy(int trackID, float startFuel, float trackTemp);
 void menu();
 void smallMenu();
-float calculate_1Stop(Track t, int tyre1, int tyre2, float startFuel, float trackTemp);
-float calculate_2Stop(Track t, int tyre1, int tyre2, int tyre3, float startFuel, float trackTemp);
+void calculateStopNumber(Track t, float startFuel, float trackTemp);
 //--------------------------------------
 
 int main() {
-	
+	srand(time(NULL));
+
 	FILE* tracksData;
-	tracksData = fopen("tracks_data.txt","r");
+	tracksData = fopen("C:\\Users\\LENOVO\\Desktop\\F1-Race-Strategy-And-Tyre-Life-Simulator\\tracks_data.txt","r");
 	
 	if(tracksData == NULL){
 		printf("File opening is failed.\n");
@@ -70,7 +77,11 @@ int main() {
         printf("1-Calculate tyre life || 2- Calculate best strategy || 3- Exit\n");
         printf("===========================================================================================\n");
         printf("What action do you want to take:");
-        scanf("%d", &actionType);
+        if (scanf("%d", &actionType) != 1) {
+            printf("Invalid input. Please enter a valid number.\n");
+            while (getchar() != '\n'); // Clear input buffer
+            continue;
+        }
         
         if (actionType == 3) {
             printf("Exiting simulator... See you on track!\n");
@@ -80,7 +91,11 @@ int main() {
         if (actionType == 1) {
             printf("-------------------------------------------------------------------------------------------\n");
             printf("Please select a track:");
-            scanf("%d", &chooseTrack);
+            if (scanf("%d", &chooseTrack) != 1) {
+                printf("Invalid input. Please enter a valid track number.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
             if (chooseTrack > 24 || chooseTrack < 1) {
@@ -90,7 +105,11 @@ int main() {
             }
             
             printf("Please enter a track temperature: ");
-            scanf("%f",&trackTemp);
+            if (scanf("%f",&trackTemp) != 1) {
+                printf("Invalid input. Please enter a valid temperature.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
             Track selectedTrack = allTracks[chooseTrack - 1];
@@ -100,12 +119,20 @@ int main() {
             printf("-------------------------------------------------------------------------------------------\n");
             
             printf("Enter starting fuel load (kg):");
-            scanf("%f", &startFuel);
+            if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                printf("Invalid input. Please enter a positive fuel load.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
             printf("1) c1 | 2) c2 | 3) c3 | 4) c4 | 5) c5 | 6) c6 |\n");
             printf("Select tyre compound (1-6):");
-            scanf("%d", &tyre);
+            if (scanf("%d", &tyre) != 1 || tyre < 1 || tyre > 6) {
+                printf("Invalid input. Please select a tyre compound between 1 and 6.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("===========================================================================================\n");
             
             int life = calculateTyreLife(trackTemp, tyre, selectedTrack.length, selectedTrack.stressLevel, startFuel, selectedTrack);
@@ -115,7 +142,11 @@ int main() {
         } else if (actionType == 2) {
            printf("-------------------------------------------------------------------------------------------\n");
             printf("Please select a track:");
-            scanf("%d", &chooseTrack);
+            if (scanf("%d", &chooseTrack) != 1) {
+                printf("Invalid input. Please enter a valid track number.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
             if (chooseTrack > 24 || chooseTrack < 1) {
@@ -125,7 +156,11 @@ int main() {
             }
             
             printf("Please enter a track temperature: ");
-            scanf("%f",&trackTemp);
+            if (scanf("%f",&trackTemp) != 1) {
+                printf("Invalid input. Please enter a valid temperature.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
             Track selectedTrack = allTracks[chooseTrack - 1];
@@ -135,10 +170,14 @@ int main() {
             printf("-------------------------------------------------------------------------------------------\n");
             
             printf("Enter starting fuel load (kg):");
-            scanf("%f", &startFuel);
+            if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                printf("Invalid input. Please enter a positive fuel load.\n");
+                while (getchar() != '\n');
+                continue;
+            }
             printf("-------------------------------------------------------------------------------------------\n");
             
-            calculateBestStrategy(chooseTrack, startFuel, trackTemp);
+            calculateStopNumber(selectedTrack, startFuel, trackTemp);
         } else {
             printf("===========================================================================================\n");
             printf("Please select a valid process.\n");
@@ -184,7 +223,7 @@ int calculateTyreLife(float trackDegree, int tyreType, float trackLength, int tr
     float grainingPenalty = 1.0;
 
     if (trackDegree <= 25.0 && trackStress <= 3) {
-        grainingPenalty = 0.94;
+        grainingPenalty = 0.82;
     }
 
     if (degreeEffect <= 0.0) {
@@ -209,162 +248,148 @@ int calculateTyreLife(float trackDegree, int tyreType, float trackLength, int tr
     return howManyLaps;
 }
 
-void calculateBestStrategy(int trackID, float startFuel, float trackTemp){
-    Track t = allTracks[trackID - 1];
+void calculateStopNumber(Track t, float startFuel, float trackTemp){
+    float allProbabilitys[PROBABILITY_CALCULATION_NUMBER];
+
+    for(int k = 0; k < PROBABILITY_CALCULATION_NUMBER; k++){
+        allProbabilitys[k] = INVALID_LAP;
+    }
     
-    float strategies[22] = {
-        // --- 1 STOP ---
-        calculate_1Stop(t, 5, 3, startFuel, trackTemp), // [0] S-M
-        calculate_1Stop(t, 5, 1, startFuel, trackTemp), // [1] S-H
-        calculate_1Stop(t, 3, 5, startFuel, trackTemp), // [2] M-S
-        calculate_1Stop(t, 3, 1, startFuel, trackTemp), // [3] M-H
-        calculate_1Stop(t, 1, 5, startFuel, trackTemp), // [4] H-S
-        calculate_1Stop(t, 1, 3, startFuel, trackTemp), // [5] H-M
+    float startFuelBackUp = startFuel;
+    char tyres[3] = {'S', 'M', 'H'};
+    char allSimTyres[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
+    int allSimLaps[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
+    int allSimPitNumbers[PROBABILITY_CALCULATION_NUMBER];
 
-        // --- 2 STOP (SOFT START) ---
-        calculate_2Stop(t, 5, 5, 3, startFuel, trackTemp), // [6] S-S-M
-        calculate_2Stop(t, 5, 5, 1, startFuel, trackTemp), // [7] S-S-H
-        calculate_2Stop(t, 5, 3, 5, startFuel, trackTemp), // [8] S-M-S
-        calculate_2Stop(t, 5, 3, 3, startFuel, trackTemp), // [9] S-M-M
-        calculate_2Stop(t, 5, 3, 1, startFuel, trackTemp), // [10] S-M-H
-        calculate_2Stop(t, 5, 1, 5, startFuel, trackTemp), // [11] S-H-S
-        calculate_2Stop(t, 5, 1, 3, startFuel, trackTemp), // [12] S-H-M
-        calculate_2Stop(t, 5, 1, 1, startFuel, trackTemp), // [13] S-H-H
+    for(int k = 0; k < PROBABILITY_CALCULATION_NUMBER; k++){
+        for(int l = 0; l < MAX_STOP_NUMBER + 1; l++){
+            allSimTyres[k][l] = ' ';
+        }
+        allSimPitNumbers[k] = 0;
+    }
 
-        // --- 2 STOP (MEDIUM START) ---
-        calculate_2Stop(t, 3, 5, 5, startFuel, trackTemp), // [14] M-S-S
-        calculate_2Stop(t, 3, 5, 3, startFuel, trackTemp), // [15] M-S-M
-        calculate_2Stop(t, 3, 5, 1, startFuel, trackTemp), // [16] M-S-H
-        calculate_2Stop(t, 3, 3, 5, startFuel, trackTemp), // [17] M-M-S
-        calculate_2Stop(t, 3, 3, 1, startFuel, trackTemp), // [18] M-M-H
-        calculate_2Stop(t, 3, 1, 5, startFuel, trackTemp), // [19] M-H-S
+    for(int j = 0; j < PROBABILITY_CALCULATION_NUMBER; j++){
+        //flag 1 = invalid lap
+        //flag 2 = calculate race time
 
-        // --- 2 STOP (HARD START) ---
-        calculate_2Stop(t, 1, 5, 5, startFuel, trackTemp), // [20] H-S-S
-        calculate_2Stop(t, 1, 5, 3, startFuel, trackTemp)  // [21] H-S-M
-    };
-    
-    // --- Strategy Names ---
-    char *strategyNames[22] = {
-        "Soft-Medium", "Soft-Hard", "Medium-Soft", "Medium-Hard", "Hard-Soft", "Hard-Medium",
-        "S-S-M", "S-S-H", "S-M-S", "S-M-M", "S-M-H", "S-H-S", "S-H-M", "S-H-H",
-        "M-S-S", "M-S-M", "M-S-H", "M-M-S", "M-M-H", "M-H-S",
-        "H-S-S", "H-S-M"
-    };
-    // --- Comparsion Process ---
-    float smallest = 0;
+        int selectedTyre = 1;
+        float sumTimes = 0;
+        int i, flag, laps, lapsRemaining, pitNumber = 0;
+        startFuel = startFuelBackUp;
+        
+        for(i = 0; i < MAX_STOP_NUMBER; i++){
+            flag = 0; 
+            if(i == 0) lapsRemaining = t.totalLaps;
+
+            int tyreNumbers[3] = {1, 3, 5};
+            selectedTyre = tyreNumbers[rand() % 3];
+
+            if(selectedTyre == 1) allSimTyres[j][i]  = tyres[2];
+            else if(selectedTyre == 3) allSimTyres[j][i]  = tyres[1];
+            else if(selectedTyre == 5) allSimTyres[j][i]  = tyres[0];
+
+            laps = calculateTyreLife(trackTemp, selectedTyre, t.length, t.stressLevel, startFuel, t); // laps = life of selected tyre
+            
+            if(laps > lapsRemaining) laps = lapsRemaining;
+
+            allSimLaps[j][i] = laps;
+
+            // Pit window calculate
+            float windowCoefficient;
+            if (selectedTyre == 5) windowCoefficient = SOFT_WINDOW_COEFFICIENT;
+            else if (selectedTyre == 3) windowCoefficient = MEDIUM_WINDOW_COEFFICIENT;
+            else windowCoefficient = HARD_WINDOW_COEFFICIENT;
+            
+            int pitWindowWidth = (int)(laps * windowCoefficient);
+
+            float speed;
+            if (selectedTyre == 5) speed = t.referenceTime * SOFT_TIME_COEFFICIENT; // Soft
+            else if (selectedTyre == 3) speed = t.referenceTime * MEDIUM_TIME_COEFFICIENT; // Medium
+            else speed = t.referenceTime * HARD_TIME_COEFFICIENT; // Hard
+            
+            float fuelBurn = laps * t.trackFuelCoefficient;
+            float avgFuel = startFuel - (fuelBurn / 2);
+            
+            sumTimes += (laps * speed) + (laps) * (avgFuel * AVG_FUEL_COEFFICIENT);
+
+            lapsRemaining -= laps; 
+            if(lapsRemaining <= 0){
+                flag = 2;
+                break;
+            }
+
+            startFuel = startFuel - fuelBurn;
+            if(startFuel <= 0){
+                flag = 1; 
+                break;
+            }
+            pitNumber++;
+        }
+
+        if(flag == 1){
+            allProbabilitys[j] = INVALID_LAP;
+        }else if(flag == 2){
+            allProbabilitys[j] = sumTimes + (pitNumber) * (t.pitWay);
+            allSimPitNumbers[j] = pitNumber;
+            char firstTyre = allSimTyres[j][0];
+            int isLegal = 0;
+
+            for(int k = 0; k <= pitNumber; k++){
+                if(firstTyre != allSimTyres[j][k]){
+                    isLegal = 1;
+                }
+            }
+            if(isLegal == 0) allProbabilitys[j] = INVALID_LAP;
+        }
+    }
+
+    float smallest = allProbabilitys[0];
     int bestIndex = 0;
-    for(int i = 0; i < 22; i++){
-        if(i == 0) smallest = strategies[0];
-        else if(strategies[i] < smallest){
-            smallest = strategies[i];
+    for(int i = 0; i < PROBABILITY_CALCULATION_NUMBER; i++){
+        if(allProbabilitys[i] < smallest){
+            smallest = allProbabilitys[i];
             bestIndex = i;
         }
     }
+    int pitNumberForBest = allSimPitNumbers[bestIndex];
     int totalSeconds = (int) smallest;
-    printf("The winner strategy is : %s !\n",* (strategyNames + bestIndex));
+    printf("The winner strategy is : ");
+    for(int i = 0; i < MAX_STOP_NUMBER + 1; i++){
+        if(allSimTyres[bestIndex][i] != ' '){ 
+            printf("%c ", allSimTyres[bestIndex][i]);
+        }
+    }
+    printf("!!\n");
+
+    int totalLapsTaken = 0;
+
+    for(int i = 0; i < pitNumberForBest; i++){
+        if(allSimTyres[bestIndex][i] != ' '){ 
+            int currentLaps = allSimLaps[bestIndex][i]; // How many laps were completed in that stint?
+            totalLapsTaken += currentLaps; // Update race lap
+            char currentTyre = allSimTyres[bestIndex][i];
+            
+            // Find the coefficient according to the letter (S, M, H)
+            float windowCoefficient;
+            if (currentTyre == 'S') windowCoefficient = SOFT_WINDOW_COEFFICIENT;
+            else if (currentTyre == 'M') windowCoefficient = MEDIUM_WINDOW_COEFFICIENT;
+            else windowCoefficient = HARD_WINDOW_COEFFICIENT;
+            
+            // Calculate the deviation and print it to the screen.
+            int pitWindowWidth = (int)(currentLaps * windowCoefficient);
+            printf("(%d. Pit window: %d - %d) ", i + 1, totalLapsTaken - pitWindowWidth, totalLapsTaken + pitWindowWidth);
+        }
+    }
+    printf("\n");
     printf("Estimated total race time : %d min. %d sec.\n",totalSeconds / 60, totalSeconds % 60);
     printf("-------------------------------------------------------------------------------------------\n");
-
-    
-    
-}
-float calculate_1Stop(Track t, int tyre1, int tyre2, float startFuel, float trackTemp){
-    
-    //---- stint 1 ----
-    int laps1 = calculateTyreLife(trackTemp, tyre1, t.length, t.stressLevel, startFuel, t);
-    
-    if (laps1 >= t.totalLaps) return INVALID_LAP; // Because if the potential lap race passes, a pit stop is not necessary.
-    
-    float speed1;
-    if (tyre1 >= 4) speed1 = t.referenceTime * SOFT_TIME_COEFFICIENT; // Soft
-    else if (tyre1 == 3) speed1 = t.referenceTime * MEDIUM_TIME_COEFFICIENT; // Medium
-    else speed1 = t.referenceTime * HARD_TIME_COEFFICIENT; // Hard
-    
-    float fuelBurn1 = laps1 * t.trackFuelCoefficient;
-    float avgFuel1 = startFuel - (fuelBurn1 / 2);
-    
-    float time1 = (laps1 * speed1) + (laps1) * (avgFuel1 * AVG_FUEL_COEFFICIENT);
-    
-    //---- stint 2 ----
-    int lapsRemaining = t.totalLaps - laps1;
-    float currentFuel = startFuel - fuelBurn1;
-    
-    int laps2 = calculateTyreLife(trackTemp, tyre2, t.length, t.stressLevel, currentFuel, t);
-    
-    if(laps2<lapsRemaining) return INVALID_LAP; // tyre is not enough
-    
-    float speed2;
-    if (tyre2 == 5) speed2 = t.referenceTime * SOFT_TIME_COEFFICIENT;
-    else if (tyre2 == 3) speed2 = t.referenceTime * MEDIUM_TIME_COEFFICIENT;
-    else speed2 = t.referenceTime * HARD_TIME_COEFFICIENT;
-    
-    float fuelBurn2 = lapsRemaining * t.trackFuelCoefficient;
-    float avgFuel2 = currentFuel - (fuelBurn2 / 2);
-    
-    float time2 = (lapsRemaining * speed2) + (lapsRemaining) * (avgFuel2 * AVG_FUEL_COEFFICIENT);
-    
-    return time1 + t.pitWay + time2;
-}
-float calculate_2Stop(Track t, int tyre1, int tyre2, int tyre3, float startFuel, float trackTemp){
-    //---- stint 1 ----
-    int laps1 = calculateTyreLife(trackTemp, tyre1, t.length, t.stressLevel, startFuel, t);
-    
-    float speed1;
-    if(tyre1 == 5) speed1 = t.referenceTime * SOFT_TIME_COEFFICIENT; //soft
-    else if(tyre1 == 3) speed1= t.referenceTime * MEDIUM_TIME_COEFFICIENT; //medium
-    else speed1 = t.referenceTime * HARD_TIME_COEFFICIENT; //hard
-    
-    float fuelBurn1 = t.trackFuelCoefficient * laps1;
-    float avgFuel1 = startFuel - (fuelBurn1/2);
-    
-    float time1 = (laps1 * speed1) + (laps1) * (avgFuel1 * AVG_FUEL_COEFFICIENT);
-    
-    //---- stint 2 ----
-    int lapsRemaining = t.totalLaps - laps1;
-    float fuelAtPit1 = startFuel - fuelBurn1;
-    
-    int laps2 = calculateTyreLife(trackTemp, tyre2, t.length, t.stressLevel, fuelAtPit1, t);
-    
-    float speed2;
-    if (tyre2 == 5) speed2 = t.referenceTime * SOFT_TIME_COEFFICIENT; //soft 
-    else if (tyre2 == 3) speed2 = t.referenceTime * MEDIUM_TIME_COEFFICIENT; //medium
-    else speed2 = t.referenceTime * HARD_TIME_COEFFICIENT; //hard
-    
-    float fuelBurn2 = laps2 * t.trackFuelCoefficient;
-    float avgFuel2 = fuelAtPit1 - (fuelBurn2 / 2);
-    
-    float time2 = (laps2 * speed2) + (laps2) * (avgFuel2 * AVG_FUEL_COEFFICIENT);
-    
-    //---- stint 3 ----
-    int lastStint = t.totalLaps - laps1 - laps2;
-    
-	if (lastStint <= 0) return INVALID_LAP; // To prevent the time from taking a negative value and therefore choosing a multiple pit stop strategy.
-    
-    float lastFuel = fuelAtPit1 - fuelBurn2;
-    
-    int laps3 = calculateTyreLife(trackTemp, tyre3, t.length, t.stressLevel, lastFuel, t);
-    
-    if(lastStint > laps3) return INVALID_LAP; // tyre is not enough
-    
-    float speed3;
-   	if(tyre3 == 5) speed3 = t.referenceTime * SOFT_TIME_COEFFICIENT; // soft
-   	else if(tyre3 == 3) speed3 = t.referenceTime * MEDIUM_TIME_COEFFICIENT; //medium
-   	else speed3 = t.referenceTime * HARD_TIME_COEFFICIENT; //hard
-    
-    float fuelBurn3 = lastStint * t.trackFuelCoefficient;
-    float avgFuel3 = lastFuel - (fuelBurn3/2);
-    
-    float time3 = (lastStint * speed3) + (lastStint) * (avgFuel3 * AVG_FUEL_COEFFICIENT);
-
-    return time1 + time2 + time3 + (2 * t.pitWay); 
 }
 
 void menu() {
     printf("===========================================================================================\n");
     printf("-------                       STRATEGY CALCULATE SIMULATOR                          -------\n");
     printf("===========================================================================================\n");
-    printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.0! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
+    printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.5! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
     printf("===========================================================================================\n");
     printf("1-AUSTRALIA GP || 2-CHINESE GP || 3-JAPANESE GP || 4-BAHRAIN GP || 5-SAUDI ARABIAN GP ||\n");
     printf("6-MIAMI GP || 7-CANADA GP || 8-MONACOGP || 9-SPANISH GP || 10-AUSTRIAN GP ||\n");
