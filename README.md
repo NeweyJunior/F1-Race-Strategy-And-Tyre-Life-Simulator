@@ -11,6 +11,7 @@ With this release, the simulator evolves from a basic mathematical model into a 
 * **Increased Simulation Precision:** The algorithmic calculation pool (`PROBABILITY_CALCULATION_NUMBER`) was expanded from 1,000 to 10,000 possibilities, yielding much sharper and highly reliable race time estimations.
 * **Input Validation:** Implemented comprehensive `scanf` validations for terminal inputs to prevent system crashes caused by incorrect or invalid data entries.
 * **Repository Cleanup:** Updated the `.gitignore` file to untrack compiled `.exe` files and local `.vscode` configurations, keeping the repository strictly focused on source code.
+* **Architectural Overhaul (Modular C Structure):** Transitioned from a monolithic `main.c` script into a fully modular software architecture. Core calculations and logic are now cleanly separated into `src/` and `headers/` directories, managed by a custom `Makefile`. This ensures highly scalable development, professional dependency management, and lightning-fast compilation.
 
 ## ⚙️ Core Mechanics
 
@@ -19,6 +20,35 @@ The simulator analyzes track characteristics using the following parameters:
 2. **Track Temperature:** Real-time thermal degradation and cold-weather graining calculations.
 3. **Fuel Weight Penalty:** The linear impact of a full fuel load (110kg) on lap times and overall tyre lifespan.
 4. **Pit Lane Time:** The net time lost in the pit lane, used to calculate the Track Position balance vs. tyre advantage.
+
+## 🛠️ How to Build & Run (User Manual)
+
+With the transition to a modular C architecture, the simulator is now compiled using a standard `Makefile`. This ensures a clean, automated, and lightning-fast build process.
+
+### Prerequisites
+* A C compiler (e.g., **GCC** via MinGW/MSYS2 for Windows, or native GCC on Linux/macOS).
+* The **`make`** utility installed and properly added to your system's environment variables (`PATH`).
+
+### 1. Compile the Simulator (Box, Box!)
+Open your terminal in the root directory of the project and run the following command to let the pit crew assemble the car:
+
+```bash
+make
+```
+*Note: The Makefile will automatically locate all necessary source files inside the `src/` directory, compile them, and link them into a single executable.*
+
+### 2. Ignite the Engine
+Once the compilation is complete and the `main.exe` file is generated, launch the simulation by running:
+
+**For Windows:**
+```bash
+.\main.exe
+```
+
+**For Linux / macOS:**
+```bash
+./main.exe
+```
 
 ## 🗺️ Roadmap
 * [ ] **Weather System (V1.6):** Integrating wet track dynamics, including Intermediate and Full Wet tyre compounds.
