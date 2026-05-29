@@ -2,23 +2,24 @@
 
 A C-based physics engine and strategy simulator for Formula 1 tyre degradation and pit-stop optimization. Inspired by real-world telemetry logic and track-specific variables.
 
-## 🚀 What's New in V1.5 (Latest Update)
+## 🚀 What's New in V1.6 (Core Architecture Update)
 
-With this release, the simulator evolves from a basic mathematical model into a system closely resembling real-world telemetry and edge-case scenarios.
+With this latest major refactoring, the simulator's backend has been completely overhauled. It now utilizes advanced C data structures and decoupled logic for maximum efficiency and readability.
 
-* **Pit Window Integration:** Added dynamic pit windows to strategy calculations (`SOFT_WINDOW_COEFFICIENT`, `MEDIUM_WINDOW_COEFFICIENT`, `HARD_WINDOW_COEFFICIENT`). The simulator now calculates not only which tyre compound to fit but exactly between which laps the pit stops should occur.
-* **Graining Model Calibration:** The "Cold Weather Graining" penalty for tracks with low temperatures (<25°C) has been calibrated to 18%. This aligns the simulator's strategic decisions perfectly with real-world F1 outcomes on cold/low-grip tracks (e.g., Piastri's 2024 Baku victory).
-* **Increased Simulation Precision:** The algorithmic calculation pool (`PROBABILITY_CALCULATION_NUMBER`) was expanded from 1,000 to 10,000 possibilities, yielding much sharper and highly reliable race time estimations.
-* **Input Validation:** Implemented comprehensive `scanf` validations for terminal inputs to prevent system crashes caused by incorrect or invalid data entries.
-* **Repository Cleanup:** Updated the `.gitignore` file to untrack compiled `.exe` files and local `.vscode` configurations, keeping the repository strictly focused on source code.
-* **Architectural Overhaul (Modular C Structure):** Transitioned from a monolithic `main.c` script into a fully modular software architecture. Core calculations and logic are now cleanly separated into `src/` and `headers/` directories, managed by a custom `Makefile`. This ensures highly scalable development, professional dependency management, and lightning-fast compilation.
+* **Separation of Concerns (Rendering vs. Calculation):** Completely isolated the mathematical simulation engine (`calculateStopNumber`) from the UI/rendering layer (`resultScreen`). The engine now strictly calculates physics and returns data, while the rendering layer purely handles console output. 
+* **Data Encapsulation (Struct Returns):** Eliminated global variable dependencies. The simulation now packages all 10,000 algorithmic possibilities and returns the winning telemetry inside a highly optimized `strategy` struct (StrategyResult).
+* **High-Fidelity Fuel Tracking & Bug Fix:** Resolved a critical logic flaw where the final stint bypassed fuel consumption. The simulator now accurately tracks the exact physical fuel weight (in kg) crossing the finish line, rather than relying on boolean states, providing extremely accurate "Fuel amount is not enough" alerts.
+* **Safety Car Groundwork:** The structural and architectural preparations for handling Safety Car (SC) and Virtual Safety Car (VSC) logic are now fully embedded in the main simulation loop.
+* **Expanded Probability Pool:** The algorithmic calculation pool (`PROBABILITY_CALCULATION_NUMBER`) operates seamlessly with 10,000 possibilities, yielding sharper and highly reliable race time estimations.
+
+*(Includes all V1.5 features: Dynamic Pit Windows, Cold Weather Graining Calibration, and Full Modular C Structure via Makefile).*
 
 ## ⚙️ Core Mechanics
 
 The simulator analyzes track characteristics using the following parameters:
 1. **Track Stress Level (1-5):** Lateral and longitudinal loads exerted on the tyres based on the circuit's cornering profile.
 2. **Track Temperature:** Real-time thermal degradation and cold-weather graining calculations.
-3. **Fuel Weight Penalty:** The linear impact of a full fuel load (110kg) on lap times and overall tyre lifespan.
+3. **Fuel Weight Penalty:** The dynamic and linear impact of fuel load (up to 110kg) on lap times, braking zones, and overall tyre lifespan.
 4. **Pit Lane Time:** The net time lost in the pit lane, used to calculate the Track Position balance vs. tyre advantage.
 
 ## 🛠️ How to Build & Run (User Manual)
@@ -34,7 +35,7 @@ Open your terminal in the root directory of the project and run the following co
 
 ```bash
 make
-```
+
 *Note: The Makefile will automatically locate all necessary source files inside the `src/` directory, compile them, and link them into a single executable.*
 
 ### 2. Ignite the Engine
@@ -51,6 +52,6 @@ Once the compilation is complete and the `main.exe` file is generated, launch th
 ```
 
 ## 🗺️ Roadmap
-* [ ] **Weather System (V1.6):** Integrating wet track dynamics, including Intermediate and Full Wet tyre compounds.
+* [ ] **Weather System (V1.7):** Integrating wet track dynamics, including Intermediate and Full Wet tyre compounds.
 * [ ] **Safety Car (SC) & VSC Impact:** Calculating the strategic impact of Safety Car periods (e.g., ~50% reduction in pit lane time loss) on Undercut/Overcut strategies.
 * [ ] **Dirty Air Coefficient:** Modeling the negative impact of running in traffic on tyre degradation and temperatures.
