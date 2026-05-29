@@ -18,7 +18,7 @@ int main() {
     }
     
     menu();
-    int chooseTrack, tyre, actionType;
+    int chooseTrack, tyre, actionType, safetyCar, scStart = 0;
     float startFuel,trackTemp;
     
     while (1) { 
@@ -117,15 +117,32 @@ int main() {
                    trackTemp, selectedTrack.length, selectedTrack.stressLevel, selectedTrack.totalLaps);
             printf("-------------------------------------------------------------------------------------------\n");
             
-            printf("Enter starting fuel load (kg):");
-            if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
-                printf("Invalid input. Please enter a positive fuel load.\n");
+            printf("Should the possibility of a safety car being used be considered?\n");
+            printf("1) Yes\t\t 0) No\n");
+            printf("Choose: ");
+
+            if (scanf("%d", &safetyCar) != 1 || (safetyCar != 0 && safetyCar != 1)) {
+                printf("Invalid input. Please enter a valid choose.\n");
                 while (getchar() != '\n');
                 continue;
             }
             printf("-------------------------------------------------------------------------------------------\n");
-            
-            calculateStopNumber(selectedTrack, startFuel, trackTemp);
+            if(safetyCar){
+                printf("This process is coming soon...\n");
+                printf("-------------------------------------------------------------------------------------------\n");
+            }else{
+                printf("Enter starting fuel load (kg):");
+                if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                    printf("Invalid input. Please enter a valid fuel load.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
+                printf("-------------------------------------------------------------------------------------------\n");
+                printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart);
+            }
+
+
+
         } else {
             printf("===========================================================================================\n");
             printf("Please select a valid process.\n");

@@ -1,6 +1,7 @@
 #include "../headers/includes.h"
+strategy bestStrategy;
 
-void calculateStopNumber(Track t, float startFuel, float trackTemp){
+strategy calculateStopNumber(Track t, float startFuel, float trackTemp, int safetyCar, int scStart){
     float allProbabilitys[PROBABILITY_CALCULATION_NUMBER];
 
     for(int k = 0; k < PROBABILITY_CALCULATION_NUMBER; k++){
@@ -12,6 +13,7 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
     char allSimTyres[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
     int allSimLaps[PROBABILITY_CALCULATION_NUMBER][MAX_STOP_NUMBER + 1];
     int allSimPitNumbers[PROBABILITY_CALCULATION_NUMBER];
+    float endFuel[PROBABILITY_CALCULATION_NUMBER] = {0.0};
 
     for(int k = 0; k < PROBABILITY_CALCULATION_NUMBER; k++){
         for(int l = 0; l < MAX_STOP_NUMBER + 1; l++){
@@ -21,9 +23,10 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
     }
 
     for(int j = 0; j < PROBABILITY_CALCULATION_NUMBER; j++){
-        //flag 1 = invalid lap
-        //flag 2 = calculate race time
-
+        // flag 1 = invalid stint
+        // flag 2 = calculate race time
+        // flag 3 = fuel amount is low
+        
         int selectedTyre = 1;
         float sumTimes = 0;
         int i, flag, laps, lapsRemaining, pitNumber = 0;
@@ -64,17 +67,21 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             
             sumTimes += (laps * speed) + (laps) * (avgFuel * AVG_FUEL_COEFFICIENT);
 
-            lapsRemaining -= laps; 
+             
+            // Fuel control:
+            startFuel = startFuel - fuelBurn;
+            if(startFuel <= 0){
+                flag = 3;
+                break;
+            }
+
+            // Stint ending:
+            lapsRemaining -= laps;
             if(lapsRemaining <= 0){
                 flag = 2;
                 break;
             }
 
-            startFuel = startFuel - fuelBurn;
-            if(startFuel <= 0){
-                flag = 1; 
-                break;
-            }
             pitNumber++;
         }
 
@@ -86,12 +93,17 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             char firstTyre = allSimTyres[j][0];
             int isLegal = 0;
 
+
+
             for(int k = 0; k <= pitNumber; k++){
                 if(firstTyre != allSimTyres[j][k]){
                     isLegal = 1;
                 }
             }
             if(isLegal == 0) allProbabilitys[j] = INVALID_LAP;
+            else endFuel[j] = startFuel;
+        }else if(flag == 3){
+            allProbabilitys[j] = INVALID_LAP;
         }
     }
 
@@ -103,36 +115,16 @@ void calculateStopNumber(Track t, float startFuel, float trackTemp){
             bestIndex = i;
         }
     }
-    int pitNumberForBest = allSimPitNumbers[bestIndex];
-    int totalSeconds = (int) smallest;
-    printf("The winner strategy is : ");
+    
     for(int i = 0; i < MAX_STOP_NUMBER + 1; i++){
         if(allSimTyres[bestIndex][i] != ' '){ 
-            printf("%c ", allSimTyres[bestIndex][i]);
+            bestStrategy.bestStrategyName[i] = allSimTyres[bestIndex][i];
+            bestStrategy.stintLap[i] = allSimLaps[bestIndex][i];
+            bestStrategy.fuelAmount = endFuel[bestIndex];
         }
     }
-    printf("!!\n");
+    bestStrategy.totalSeconds = (int) smallest;
+    bestStrategy.pitNumberForBest = allSimPitNumbers[bestIndex];
 
-    int totalLapsTaken = 0;
-
-    for(int i = 0; i < pitNumberForBest; i++){
-        if(allSimTyres[bestIndex][i] != ' '){ 
-            int currentLaps = allSimLaps[bestIndex][i]; // How many laps were completed in that stint?
-            totalLapsTaken += currentLaps; // Update race lap
-            char currentTyre = allSimTyres[bestIndex][i];
-            
-            // Find the coefficient according to the letter (S, M, H)
-            float windowCoefficient;
-            if (currentTyre == 'S') windowCoefficient = SOFT_WINDOW_COEFFICIENT;
-            else if (currentTyre == 'M') windowCoefficient = MEDIUM_WINDOW_COEFFICIENT;
-            else windowCoefficient = HARD_WINDOW_COEFFICIENT;
-            
-            // Calculate the deviation and print it to the screen.
-            int pitWindowWidth = (int)(currentLaps * windowCoefficient);
-            printf("(%d. Pit window: %d - %d) ", i + 1, totalLapsTaken - pitWindowWidth, totalLapsTaken + pitWindowWidth);
-        }
-    }
-    printf("\n");
-    printf("Estimated total race time : %d min. %d sec.\n",totalSeconds / 60, totalSeconds % 60);
-    printf("-------------------------------------------------------------------------------------------\n");
+    return bestStrategy;
 }

@@ -1,6 +1,6 @@
 #ifndef CALCULATESTOPNUMBER_H
 #define CALCULATESTOPNUMBER_H
 
-void calculateStopNumber(Track t, float startFuel, float trackTemp);
+strategy calculateStopNumber(Track t, float startFuel, float trackTemp, int safetyCar, int scStart);
 
 #endif   
