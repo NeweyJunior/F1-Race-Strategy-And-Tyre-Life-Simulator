@@ -4,7 +4,7 @@ void menu() {
     printf("===========================================================================================\n");
     printf("-------                        STRATEGY CALCULATE SIMULATOR                         -------\n");
     printf("===========================================================================================\n");
-    printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.5! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
+    printf("WELCOME TO THE STRATEGY CALCULATION SIMULATOR V1.7! THE PURPOSE OF THIS SIMULATOR IS\nTO FIND THE STRATEGY THAT WILL FINISH THE RACE IN THE FASTEST WAY.\n");
     printf("===========================================================================================\n");
     printf("1-AUSTRALIA GP || 2-CHINESE GP || 3-JAPANESE GP || 4-BAHRAIN GP || 5-SAUDI ARABIAN GP ||\n");
     printf("6-MIAMI GP || 7-CANADA GP || 8-MONACOGP || 9-SPANISH GP || 10-AUSTRIAN GP ||\n");

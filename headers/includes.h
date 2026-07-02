@@ -20,6 +20,7 @@
 #include "functions/calculateStopNumber.h"
 #include "functions/menus.h"
 #include "functions/printResult.h"
+#include "functions/calculateScStrategy.h"
 
 
 

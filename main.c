@@ -128,7 +128,24 @@ int main() {
             }
             printf("-------------------------------------------------------------------------------------------\n");
             if(safetyCar){
-                printf("This process is coming soon...\n");
+                printf("Enter sc start lap number:");
+
+                if (scanf("%d", &scStart) != 1 || scStart <= 0 || scStart >= selectedTrack.totalLaps) {
+                    printf("Invalid input. Please enter a valid lap number.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
+
+                printf("-------------------------------------------------------------------------------------------\n");
+
+                printf("Enter starting fuel load (kg):");
+                if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                    printf("Invalid input. Please enter a valid fuel load.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
+                printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart, selectedTrack.totalLaps);
+                
                 printf("-------------------------------------------------------------------------------------------\n");
             }else{
                 printf("Enter starting fuel load (kg):");
@@ -138,7 +155,7 @@ int main() {
                     continue;
                 }
                 printf("-------------------------------------------------------------------------------------------\n");
-                printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart);
+                printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart, selectedTrack.totalLaps);
             }
 
 
