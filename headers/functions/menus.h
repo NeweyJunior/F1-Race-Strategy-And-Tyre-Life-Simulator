@@ -3,5 +3,6 @@
 
 void menu();
 void smallMenu();
+void userScreen();
 
 #endif

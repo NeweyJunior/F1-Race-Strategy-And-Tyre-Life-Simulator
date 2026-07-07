@@ -21,7 +21,8 @@
 #include "functions/menus.h"
 #include "functions/printResult.h"
 #include "functions/calculateScStrategy.h"
-
+#include "functions/readFile.h"
+#include "functions/userScreen.h"
 
 
 #endif
