@@ -6,7 +6,7 @@
 
 void userScreen(){
     menu();
-    int chooseTrack, tyre, actionType, safetyCar, scStart = 0;
+    int chooseTrack, tyre, actionType, safetyCar, scStart = 0, fuelDecision = 0;
     float startFuel,trackTemp;
     
     while (1) { 
@@ -53,13 +53,27 @@ void userScreen(){
             printf("Temp: %.2f C | Length: %.3f km | Stress Level: %d | Number of laps: %d\n", 
                    trackTemp, selectedTrack.length, selectedTrack.stressLevel, selectedTrack.totalLaps);
             printf("-------------------------------------------------------------------------------------------\n");
-            
-            printf("Enter starting fuel load (kg):");
-            if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
-                printf("Invalid input. Please enter a positive fuel load.\n");
-                while (getchar() != '\n');
-                continue;
+
+            printf("Should the minimum fuel amount be calculated automatically (0 - no / 1 - yes): ");
+            scanf("%d", &fuelDecision);
+
+            if(fuelDecision == 1){
+                startFuel = (selectedTrack.trackFuelCoefficient * selectedTrack.totalLaps + 0.2); // 0.2 for safety
+            }else if(fuelDecision == 0){
+                printf("Enter starting fuel load (kg):");
+                if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                    printf("Invalid input. Please enter a positive fuel load.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
+            }else{
+                if (fuelDecision != 1 || startFuel != 0) {
+                    printf("Invalid input.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
             }
+            
             printf("-------------------------------------------------------------------------------------------\n");
             
             printf("1) c1 | 2) c2 | 3) c3 | 4) c4 | 5) c5 | 6) c6 |\n");
@@ -126,21 +140,47 @@ void userScreen(){
 
                 printf("-------------------------------------------------------------------------------------------\n");
 
-                printf("Enter starting fuel load (kg):");
-                if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
-                    printf("Invalid input. Please enter a valid fuel load.\n");
-                    while (getchar() != '\n');
-                    continue;
+                printf("Should the minimum fuel amount be calculated automatically: (0 - no / 1 - yes)\n");
+                scanf("%d", &fuelDecision);
+
+                if(fuelDecision == 1){
+                    startFuel = (selectedTrack.trackFuelCoefficient * selectedTrack.totalLaps + 0.2); // 0.2 for safety
+                }else if(fuelDecision == 0){
+                    printf("Enter starting fuel load (kg):");
+                    if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                        printf("Invalid input. Please enter a positive fuel load.\n");
+                        while (getchar() != '\n');
+                        continue;
+                    }
+                }else{
+                    if (fuelDecision != 1 || startFuel != 0) {
+                        printf("Invalid input.\n");
+                        while (getchar() != '\n');
+                        continue;
+                    }
                 }
                 printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart, selectedTrack.totalLaps);
                 
                 printf("-------------------------------------------------------------------------------------------\n");
             }else{
-                printf("Enter starting fuel load (kg):");
-                if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
-                    printf("Invalid input. Please enter a valid fuel load.\n");
-                    while (getchar() != '\n');
-                    continue;
+                printf("Should the minimum fuel amount be calculated automatically: (0 - no / 1 - yes)\n");
+                scanf("%d", &fuelDecision);
+
+                if(fuelDecision == 1){
+                    startFuel = (selectedTrack.trackFuelCoefficient * selectedTrack.totalLaps + 0.2); // 0.2 for safety
+                }else if(fuelDecision == 0){
+                    printf("Enter starting fuel load (kg):");
+                    if (scanf("%f", &startFuel) != 1 || startFuel <= 0) {
+                        printf("Invalid input. Please enter a positive fuel load.\n");
+                        while (getchar() != '\n');
+                        continue;
+                    }
+                }else{
+                    if (fuelDecision != 1 || startFuel != 0) {
+                        printf("Invalid input.\n");
+                        while (getchar() != '\n');
+                        continue;
+                    }
                 }
                 printf("-------------------------------------------------------------------------------------------\n");
                 printResult(selectedTrack, startFuel, trackTemp, safetyCar, scStart, selectedTrack.totalLaps);
